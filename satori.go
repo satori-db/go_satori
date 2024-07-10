@@ -87,7 +87,7 @@ func (satori *Satori) Heartbeat() string {
 		return "Error on Dial"
 	}
 
-	p := Payload{Command: "HEARTBEAT", Username: satori.username, Token: satori.token}
+	p := Payload{Command: "HEARTBEAT", Username: satori.Username, Token: satori.Token}
 	b, err := json.Marshal(p)
 
 	if err != nil {
@@ -108,7 +108,7 @@ func (satori *Satori) Set(key string, expires bool, expiration_time int64, objTy
 	}
 	defer conn.Close()
 
-	p := Payload{Command: "SET", Username: satori.username, Token: satori.token, Key: key, Expires: expires, ExpirationTime: expiration_time, ObjectType: objType, Vertices: vertices, Data: data}
+	p := Payload{Command: "SET", Username: satori.Username, Token: satori.Token, Key: key, Expires: expires, ExpirationTime: expiration_time, ObjectType: objType, Vertices: vertices, Data: data}
 	b, err := json.Marshal(p)
 	if err != nil {
 		return "Error serializing Payload"
@@ -129,7 +129,7 @@ func (satori *Satori) Get(key string, encryptionKey string) string {
 		return "Error on Dial"
 	}
 
-	p := Payload{Command: "GET", Username: satori.username, Token: satori.token, Key: key, EncryptionKey: encryptionKey}
+	p := Payload{Command: "GET", Username: satori.Username, Token: satori.Token, Key: key, EncryptionKey: encryptionKey}
 	b, err := json.Marshal(p)
 
 	if err != nil {
@@ -160,7 +160,7 @@ func (satori *Satori) Put(key string, replaceField string, replaceValue any, enc
 		return "Error on Dial"
 	}
 
-	p := Payload{Command: "PUT", Username: satori.username, Token: satori.token, Key: key, ReplaceField: replaceField, ReplaceValue: replaceValue, EncryptionKey: encryptionKey}
+	p := Payload{Command: "PUT", Username: satori.Username, Token: satori.Token, Key: key, ReplaceField: replaceField, ReplaceValue: replaceValue, EncryptionKey: encryptionKey}
 	b, err := json.Marshal(p)
 
 	if err != nil {
@@ -190,7 +190,7 @@ func (satori *Satori) Delete(key string) string {
 		return "Error on Dial"
 	}
 
-	p := Payload{Command: "DELETE", Username: satori.username, Token: satori.token, Key: key}
+	p := Payload{Command: "DELETE", Username: satori.Username, Token: satori.Token, Key: key}
 	b, err := json.Marshal(p)
 
 	if err != nil {
@@ -218,9 +218,9 @@ func (satori *Satori) DFS(node string, relation string) string {
 	if err != nil {
 		return "Error on Dial"
 	}
-	p := Payload{Command: "DFS", Node: node, Key: node, Relation: relation, Username: satori.username, Token: satori.token}
+	p := Payload{Command: "DFS", Node: node, Key: node, Relation: relation, Username: satori.Username, Token: satori.Token}
 	if relation == "" {
-		p = Payload{Command: "DFS", Node: node, Key: node, Username: satori.username, Token: satori.token}
+		p = Payload{Command: "DFS", Node: node, Key: node, Username: satori.Username, Token: satori.Token}
 	}
 	b, err := json.Marshal(p)
 
@@ -243,7 +243,7 @@ func (satori *Satori) SetVertex(key string, vertex []string, encryptionKey strin
 		return "Error on Dial"
 	}
 
-	p := Payload{Command: "SET_VERTEX", Key: key, Vertex: vertex, EncryptionKey: encryptionKey, Username: satori.username, Token: satori.token}
+	p := Payload{Command: "SET_VERTEX", Key: key, Vertex: vertex, EncryptionKey: encryptionKey, Username: satori.Username, Token: satori.Token}
 	b, err := json.Marshal(p)
 
 	if err != nil {
@@ -265,7 +265,7 @@ func (satori *Satori) GetVertex(key string, encryptionKey string) string {
 		return "Error on Dial"
 	}
 
-	p := Payload{Command: "GET_VERTEX", Key: key, EncryptionKey: encryptionKey, Username: satori.username, Token: satori.token}
+	p := Payload{Command: "GET_VERTEX", Key: key, EncryptionKey: encryptionKey, Username: satori.Username, Token: satori.Token}
 	b, err := json.Marshal(p)
 
 	if err != nil {
@@ -287,7 +287,7 @@ func (satori *Satori) DeleteVertex(key string, vertex string, encryptionKey stri
 		return "Error on Dial"
 	}
 
-	p := Payload{Command: "DELETE_VERTEX", Key: key, Vertex: vertex, EncryptionKey: encryptionKey, Username: satori.username, Token: satori.token}
+	p := Payload{Command: "DELETE_VERTEX", Key: key, Vertex: vertex, EncryptionKey: encryptionKey, Username: satori.Username, Token: satori.Token}
 	b, err := json.Marshal(p)
 
 	if err != nil {
@@ -309,7 +309,7 @@ func (satori *Satori) Encrypt(key string, encryptionKey string) string {
 		return "Error on Dial"
 	}
 
-	p := Payload{Command: "ENCRYPT", Key: key, EncryptionKey: encryptionKey, Username: satori.username, Token: satori.token}
+	p := Payload{Command: "ENCRYPT", Key: key, EncryptionKey: encryptionKey, Username: satori.Username, Token: satori.Token}
 	b, err := json.Marshal(p)
 
 	if err != nil {
@@ -331,7 +331,7 @@ func (satori *Satori) Decrypt(key string, encryptionKey string) string {
 		return "Error on Dial"
 	}
 
-	p := Payload{Command: "DECRYPT", Key: key, EncryptionKey: encryptionKey, Username: satori.username, Token: satori.token}
+	p := Payload{Command: "DECRYPT", Key: key, EncryptionKey: encryptionKey, Username: satori.Username, Token: satori.Token}
 	b, err := json.Marshal(p)
 
 	if err != nil {
@@ -346,14 +346,14 @@ func (satori *Satori) Decrypt(key string, encryptionKey string) string {
 	return str
 }
 
-func (satori *Satori) SetUser(username string, role string) string {
+func (satori *Satori) SetUser(Username string, role string) string {
 
 	conn, err := satori.getSocket()
 	if err != nil {
 		return "Error on Dial"
 	}
 
-	p := Payload{Command: "SET_USER", SetUsername: username, Role: role, Username: satori.username, Token: satori.token}
+	p := Payload{Command: "SET_USER", SetUsername: Username, Role: role, Username: satori.Username, Token: satori.Token}
 	b, err := json.Marshal(p)
 
 	if err != nil {
@@ -366,21 +366,21 @@ func (satori *Satori) SetUser(username string, role string) string {
 	str := string(res[:])
 
 	if str != "ERROR" {
-		if username == satori.username {
-			satori.token = str
+		if Username == satori.Username {
+			satori.Token = str
 		}
 	}
 
 	return str
 }
 
-func (satori *Satori) GetUser(username string) string {
+func (satori *Satori) GetUser(Username string) string {
 	conn, err := satori.getSocket()
 	if err != nil {
 		return "Error on Dial"
 	}
 
-	p := Payload{Command: "GET_USER", GetUsername: username, Username: satori.username, Token: satori.token}
+	p := Payload{Command: "GET_USER", GetUsername: Username, Username: satori.Username, Token: satori.Token}
 	b, err := json.Marshal(p)
 
 	if err != nil {
@@ -394,13 +394,13 @@ func (satori *Satori) GetUser(username string) string {
 	return string(res[:])
 }
 
-func (satori *Satori) PutUser(username string, role string) string {
+func (satori *Satori) PutUser(Username string, role string) string {
 	conn, err := satori.getSocket()
 	if err != nil {
 		return "Error on Dial"
 	}
 
-	p := Payload{Command: "PUT_USER", PutUsername: username, Username: satori.username, Token: satori.token, Role: role}
+	p := Payload{Command: "PUT_USER", PutUsername: Username, Username: satori.Username, Token: satori.Token, Role: role}
 	b, err := json.Marshal(p)
 
 	if err != nil {
@@ -414,13 +414,13 @@ func (satori *Satori) PutUser(username string, role string) string {
 	return string(res[:])
 }
 
-func (satori *Satori) DeleteUser(username string) string {
+func (satori *Satori) DeleteUser(Username string) string {
 	conn, err := satori.getSocket()
 	if err != nil {
 		return "Error on Dial"
 	}
 
-	p := Payload{Command: "DELETE_USER", DeleteUsername: username, Username: satori.username, Token: satori.token}
+	p := Payload{Command: "DELETE_USER", DeleteUsername: Username, Username: satori.Username, Token: satori.Token}
 	b, err := json.Marshal(p)
 
 	if err != nil {
@@ -440,7 +440,7 @@ func (satori *Satori) DeleteAuth() string {
 		return "Error on Dial"
 	}
 
-	p := Payload{Command: "DELETE_AUTH", Username: satori.username, Token: satori.token}
+	p := Payload{Command: "DELETE_AUTH", Username: satori.Username, Token: satori.Token}
 	b, err := json.Marshal(p)
 
 	if err != nil {
@@ -460,7 +460,7 @@ func (satori *Satori) GetAll(objType string) string {
 		return "Error on Dial"
 	}
 
-	p := Payload{Command: "GET_ALL", ObjectType: objType, Username: satori.username, Token: satori.token}
+	p := Payload{Command: "GET_ALL", ObjectType: objType, Username: satori.Username, Token: satori.Token}
 	b, err := json.Marshal(p)
 
 	if err != nil {
@@ -480,7 +480,7 @@ func (satori *Satori) DeleteAll(objType string) string {
 		return "Error on Dial"
 	}
 
-	p := Payload{Command: "DELETE_ALL", ObjectType: objType, Username: satori.username, Token: satori.token}
+	p := Payload{Command: "DELETE_ALL", ObjectType: objType, Username: satori.Username, Token: satori.Token}
 	b, err := json.Marshal(p)
 
 	if err != nil {
@@ -500,7 +500,7 @@ func (satori *Satori) GetAllWith(fieldArray []FieldEntry) string {
 		return "Error on Dial"
 	}
 
-	p := Payload{Command: "GET_ALL_WITH", FieldArray: fieldArray, Username: satori.username, Token: satori.token}
+	p := Payload{Command: "GET_ALL_WITH", FieldArray: fieldArray, Username: satori.Username, Token: satori.Token}
 	b, err := json.Marshal(p)
 
 	if err != nil {
@@ -520,7 +520,7 @@ func (satori *Satori) GetOneWith(fieldArray []FieldEntry) string {
 		return "Error on Dial"
 	}
 
-	p := Payload{Command: "GET_ONE_WITH", FieldArray: fieldArray, Username: satori.username, Token: satori.token}
+	p := Payload{Command: "GET_ONE_WITH", FieldArray: fieldArray, Username: satori.Username, Token: satori.Token}
 	b, err := json.Marshal(p)
 
 	if err != nil {
@@ -540,7 +540,7 @@ func (satori *Satori) DeleteAllWith(fieldArray []FieldEntry) string {
 		return "Error on Dial"
 	}
 
-	p := Payload{Command: "DELETE_ALL_WITH", FieldArray: fieldArray, Username: satori.username, Token: satori.token}
+	p := Payload{Command: "DELETE_ALL_WITH", FieldArray: fieldArray, Username: satori.Username, Token: satori.Token}
 	b, err := json.Marshal(p)
 
 	if err != nil {
@@ -560,7 +560,7 @@ func (satori *Satori) DeleteOneWith(fieldArray []FieldEntry) string {
 		return "Error on Dial"
 	}
 
-	p := Payload{Command: "DELETE_ONE_WITH", FieldArray: fieldArray, Username: satori.username, Token: satori.token}
+	p := Payload{Command: "DELETE_ONE_WITH", FieldArray: fieldArray, Username: satori.Username, Token: satori.Token}
 	b, err := json.Marshal(p)
 
 	if err != nil {
@@ -580,7 +580,7 @@ func (satori *Satori) PutAllWith(fieldArray []FieldEntry, replaceField string, r
 		return "Error on Dial"
 	}
 
-	p := Payload{Command: "PUT_ALL_WITH", FieldArray: fieldArray, ReplaceField: replaceField, ReplaceValue: replaceValue, Username: satori.username, Token: satori.token}
+	p := Payload{Command: "PUT_ALL_WITH", FieldArray: fieldArray, ReplaceField: replaceField, ReplaceValue: replaceValue, Username: satori.Username, Token: satori.Token}
 	b, err := json.Marshal(p)
 
 	if err != nil {
@@ -600,7 +600,7 @@ func (satori *Satori) PutOneWith(fieldArray []FieldEntry, replaceField string, r
 		return "Error on Dial"
 	}
 
-	p := Payload{Command: "PUT_ONE_WITH", FieldArray: fieldArray, ReplaceField: replaceField, ReplaceValue: replaceValue, Username: satori.username, Token: satori.token}
+	p := Payload{Command: "PUT_ONE_WITH", FieldArray: fieldArray, ReplaceField: replaceField, ReplaceValue: replaceValue, Username: satori.Username, Token: satori.Token}
 	b, err := json.Marshal(p)
 
 	if err != nil {
@@ -620,7 +620,7 @@ func (satori *Satori) SetRef(key string, ref string, encryptionKey string) strin
 		return "Error on Dial"
 	}
 
-	p := Payload{Command: "SET_REF", Key: key, Ref: ref, EncryptionKey: encryptionKey, Username: satori.username, Token: satori.token}
+	p := Payload{Command: "SET_REF", Key: key, Ref: ref, EncryptionKey: encryptionKey, Username: satori.Username, Token: satori.Token}
 	b, err := json.Marshal(p)
 
 	if err != nil {
@@ -640,7 +640,7 @@ func (satori *Satori) GetRefs(key string) string {
 		return "Error on Dial"
 	}
 
-	p := Payload{Command: "GET_REFS", Key: key, Username: satori.username, Token: satori.token}
+	p := Payload{Command: "GET_REFS", Key: key, Username: satori.Username, Token: satori.Token}
 	b, err := json.Marshal(p)
 
 	if err != nil {
@@ -660,7 +660,7 @@ func (satori *Satori) Pop(key string, array string, encrpytionKey string) string
 		return "Error on Dial"
 	}
 
-	p := Payload{Command: "POP", Key: key, Array: array, EncryptionKey: encrpytionKey, Username: satori.username, Token: satori.token}
+	p := Payload{Command: "POP", Key: key, Array: array, EncryptionKey: encrpytionKey, Username: satori.Username, Token: satori.Token}
 	b, err := json.Marshal(p)
 
 	if err != nil {
@@ -680,7 +680,7 @@ func (satori *Satori) Push(key string, array string, value any, encrpytionKey st
 		return "Error on Dial"
 	}
 
-	p := Payload{Command: "PUSH", Key: key, Array: array, EncryptionKey: encrpytionKey, Value: value, Username: satori.username, Token: satori.token}
+	p := Payload{Command: "PUSH", Key: key, Array: array, EncryptionKey: encrpytionKey, Value: value, Username: satori.Username, Token: satori.Token}
 	b, err := json.Marshal(p)
 
 	if err != nil {
@@ -700,7 +700,7 @@ func (satori *Satori) Remove(key string, array string, value any, encrpytionKey 
 		return "Error on Dial"
 	}
 
-	p := Payload{Command: "REMOVE", Key: key, Array: array, EncryptionKey: encrpytionKey, Value: value, Username: satori.username, Token: satori.token}
+	p := Payload{Command: "REMOVE", Key: key, Array: array, EncryptionKey: encrpytionKey, Value: value, Username: satori.Username, Token: satori.Token}
 	b, err := json.Marshal(p)
 
 	if err != nil {
@@ -720,7 +720,7 @@ func (satori *Satori) Splice(key string, array string, encrpytionKey string) str
 		return "Error on Dial"
 	}
 
-	p := Payload{Command: "SPLICE", Key: key, Array: array, EncryptionKey: encrpytionKey, Username: satori.username, Token: satori.token}
+	p := Payload{Command: "SPLICE", Key: key, Array: array, EncryptionKey: encrpytionKey, Username: satori.Username, Token: satori.Token}
 	b, err := json.Marshal(p)
 
 	if err != nil {
@@ -740,7 +740,7 @@ func (satori *Satori) DeleteRefs(key string) string {
 		return "Error on Dial"
 	}
 
-	p := Payload{Command: "DELETE_REFS", Key: key, Username: satori.username, Token: satori.token}
+	p := Payload{Command: "DELETE_REFS", Key: key, Username: satori.Username, Token: satori.Token}
 	b, err := json.Marshal(p)
 
 	if err != nil {
@@ -760,7 +760,7 @@ func (satori *Satori) DeleteRef(key string, ref string, encrpytionKey string) st
 		return "Error on Dial"
 	}
 
-	p := Payload{Command: "DELETE_REF", Key: key, Ref: ref, EncryptionKey: encrpytionKey, Username: satori.username, Token: satori.token}
+	p := Payload{Command: "DELETE_REF", Key: key, Ref: ref, EncryptionKey: encrpytionKey, Username: satori.Username, Token: satori.Token}
 	b, err := json.Marshal(p)
 
 	if err != nil {
@@ -780,7 +780,7 @@ func (satori *Satori) PutAll(objectType string, replaceField string, replaceValu
 		return "Error on Dial"
 	}
 
-	p := Payload{Command: "PUT_ALL", ObjectType: objectType, ReplaceField: replaceField, ReplaceValue: replaceValue, Username: satori.username, Token: satori.token}
+	p := Payload{Command: "PUT_ALL", ObjectType: objectType, ReplaceField: replaceField, ReplaceValue: replaceValue, Username: satori.Username, Token: satori.Token}
 	b, err := json.Marshal(p)
 
 	if err != nil {
@@ -800,7 +800,7 @@ func (satori *Satori) Inject(path string, args any) string {
 		return "Error on Dial"
 	}
 
-	p := Payload{Command: "INJECT", Code: path, Username: satori.username, Token: satori.token, Args: args}
+	p := Payload{Command: "INJECT", Code: path, Username: satori.Username, Token: satori.Token, Args: args}
 	b, err := json.Marshal(p)
 
 	if err != nil {
@@ -820,7 +820,7 @@ func (satori *Satori) Get_Stats() string {
 		return "Error on Dial"
 	}
 
-	p := Payload{Command: "GET_STATS", Username: satori.username, Token: satori.token}
+	p := Payload{Command: "GET_STATS", Username: satori.Username, Token: satori.Token}
 	b, err := json.Marshal(p)
 
 	if err != nil {
