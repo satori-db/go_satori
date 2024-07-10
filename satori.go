@@ -31,10 +31,10 @@ type Satorier interface {
 }
 
 type Satori struct {
-	host     string
-	port     string
-	username string
-	token    string
+	Host     string
+	Port     string
+	Username string
+	Token    string
 }
 
 type FieldEntry struct {
@@ -72,7 +72,7 @@ type Payload struct {
 }
 
 func (s *Satori) getSocket() (*tls.Conn, error) {
-	conn, err := tls.Dial("tcp", fmt.Sprintf("%s:%s", s.host, s.port), &tls.Config{
+	conn, err := tls.Dial("tcp", fmt.Sprintf("%s:%s", s.Host, s.Port), &tls.Config{
 		InsecureSkipVerify: true,
 	})
 	if err != nil {
