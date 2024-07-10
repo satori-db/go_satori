@@ -1,6 +1,12 @@
 # GO_SATORI
 This is the go driver for Satori, it has all of the operations implemented.
 
+# Installation
+
+```bash
+$ > go get https://github.com/satori-db/go_satori
+```
+
 # Example
 
 ```go
