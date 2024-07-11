@@ -71,6 +71,11 @@ type Payload struct {
 	Value          any          `json:"value"`
 }
 
+type Vertex struct {
+	Relation string `json:"relation"`
+	Neighbor string `json:"neighbor"`
+}
+
 func (s *Satori) getSocket() (*tls.Conn, error) {
 	conn, err := tls.Dial("tcp", fmt.Sprintf("%s:%s", s.Host, s.Port), &tls.Config{
 		InsecureSkipVerify: true,
@@ -236,7 +241,7 @@ func (satori *Satori) DFS(node string, relation string) string {
 	return str
 }
 
-func (satori *Satori) SetVertex(key string, vertex []string, encryptionKey string) string {
+func (satori *Satori) SetVertex(key string, vertex []Vertex, encryptionKey string) string {
 
 	conn, err := satori.getSocket()
 	if err != nil {
