@@ -282,6 +282,7 @@ func (satori *Satori) DFS(node string, relation string) string {
 // ok
 // ok
 // ok
+// ok
 func (satori *Satori) SetVertex(key string, vertex []Vertex, encryptionKey string) string {
 
 	conn, err := satori.getSocket()
