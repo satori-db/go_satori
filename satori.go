@@ -3,8 +3,12 @@ package satori
 import (
 	"crypto/tls"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
+	"net/url"
+
+	"github.com/gorilla/websocket"
 )
 
 type Satorier interface {
@@ -31,10 +35,11 @@ type Satorier interface {
 }
 
 type Satori struct {
-	Host     string
-	Port     string
-	Username string
-	Token    string
+	Host          string
+	Port          string
+	Username      string
+	Token         string
+	CurrentSocket *websocket.Conn
 }
 
 type FieldEntry struct {
@@ -76,13 +81,36 @@ type Vertex struct {
 	Neighbor string `json:"neighbor"`
 }
 
-func (s *Satori) getSocket() (*tls.Conn, error) {
-	conn, err := tls.Dial("tcp", fmt.Sprintf("%s:%s", s.Host, s.Port), &tls.Config{
-		InsecureSkipVerify: true,
-	})
-	if err != nil {
-		return nil, err
+func (s *Satori) getSocket() (*websocket.Conn, error) {
+
+	if s.CurrentSocket != nil {
+		return s.CurrentSocket, nil
 	}
+
+	websocketURL := "ws://" + s.Host + ":" + s.Port
+
+	// Parse the URL
+	u, err := url.Parse(websocketURL)
+	if err != nil {
+		fmt.Println("Error parsing URL:", err)
+
+		return nil, errors.New("Error parsing URL")
+	}
+
+	// Create a new WebSocket dialer
+	dialer := websocket.Dialer{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, // Adjust as needed
+	}
+
+	// Connect to the WebSocket
+	conn, _, err := dialer.Dial(u.String(), nil)
+	if err != nil {
+		fmt.Println("Error connecting to WebSocket:", err)
+		return nil, errors.New("Error connection to WebSocket")
+	}
+
+	s.CurrentSocket = conn
+
 	return conn, nil
 }
 
@@ -99,9 +127,11 @@ func (satori *Satori) Heartbeat() string {
 		return "Error serializing payload"
 	}
 
-	conn.Write(b)
-	res := make([]byte, 3072)
-	conn.Read(res)
+	conn.WriteMessage(websocket.TextMessage, b)
+	_, res, err := conn.ReadMessage()
+	if err != nil {
+		return "Error reading over socker"
+	}
 
 	return string(res[:])
 }
@@ -119,9 +149,11 @@ func (satori *Satori) Set(key string, expires bool, expiration_time int64, objTy
 		return "Error serializing Payload"
 	}
 
-	conn.Write(b)
-	res := make([]byte, 3072)
-	conn.Read(res)
+	conn.WriteMessage(websocket.TextMessage, b)
+	_, res, err := conn.ReadMessage()
+	if err != nil {
+		return "Error reading over socker"
+	}
 	conn.Close()
 	return string(res[:])
 }
@@ -141,7 +173,7 @@ func (satori *Satori) Get(key string, encryptionKey string) string {
 		return "Error serializing payload"
 	}
 
-	conn.Write(b)
+	conn.WriteMessage(websocket.TextMessage, b)
 	res := make([]byte, 3072)
 
 	for {
@@ -172,11 +204,14 @@ func (satori *Satori) Put(key string, replaceField string, replaceValue any, enc
 		return "Error serializing payload"
 	}
 
-	conn.Write(b)
-	res := make([]byte, 3072)
-
+	conn.WriteMessage(websocket.TextMessage, b)
+	var rx []byte
 	for {
-		_, err := conn.Read(res)
+		_, res, err := conn.ReadMessage()
+		if err != nil {
+			return "Error reading over socker"
+		}
+		rx = res
 		if err != nil && err != io.EOF {
 			return "Error reading over socket"
 		} else {
@@ -184,7 +219,7 @@ func (satori *Satori) Put(key string, replaceField string, replaceValue any, enc
 		}
 
 	}
-	return string(res[:])
+	return string(rx[:])
 }
 
 func (satori *Satori) Delete(key string) string {
@@ -202,7 +237,7 @@ func (satori *Satori) Delete(key string) string {
 		return "Error serializing payload"
 	}
 
-	conn.Write(b)
+	conn.WriteMessage(websocket.TextMessage, b)
 	res := make([]byte, 3072)
 
 	for {
@@ -233,9 +268,11 @@ func (satori *Satori) DFS(node string, relation string) string {
 		return "Error serializing payload"
 	}
 
-	conn.Write(b)
-	res := make([]byte, 3072)
-	conn.Read(res)
+	conn.WriteMessage(websocket.TextMessage, b)
+	_, res, err := conn.ReadMessage()
+	if err != nil {
+		return "Error reading over socker"
+	}
 	str := string(res[:])
 
 	return str
@@ -255,9 +292,11 @@ func (satori *Satori) SetVertex(key string, vertex []Vertex, encryptionKey strin
 		return "Error serializing payload"
 	}
 
-	conn.Write(b)
-	res := make([]byte, 3072)
-	conn.Read(res)
+	conn.WriteMessage(websocket.TextMessage, b)
+	_, res, err := conn.ReadMessage()
+	if err != nil {
+		return "Error reading over socker"
+	}
 	str := string(res[:])
 
 	return str
@@ -277,9 +316,11 @@ func (satori *Satori) GetVertex(key string, encryptionKey string) string {
 		return "Error serializing payload"
 	}
 
-	conn.Write(b)
-	res := make([]byte, 3072)
-	conn.Read(res)
+	conn.WriteMessage(websocket.TextMessage, b)
+	_, res, err := conn.ReadMessage()
+	if err != nil {
+		return "Error reading over socker"
+	}
 	str := string(res[:])
 
 	return str
@@ -299,9 +340,11 @@ func (satori *Satori) DeleteVertex(key string, vertex string, encryptionKey stri
 		return "Error serializing payload"
 	}
 
-	conn.Write(b)
-	res := make([]byte, 3072)
-	conn.Read(res)
+	conn.WriteMessage(websocket.TextMessage, b)
+	_, res, err := conn.ReadMessage()
+	if err != nil {
+		return "Error reading over socker"
+	}
 	str := string(res[:])
 
 	return str
@@ -321,9 +364,11 @@ func (satori *Satori) Encrypt(key string, encryptionKey string) string {
 		return "Error serializing payload"
 	}
 
-	conn.Write(b)
-	res := make([]byte, 3072)
-	conn.Read(res)
+	conn.WriteMessage(websocket.TextMessage, b)
+	_, res, err := conn.ReadMessage()
+	if err != nil {
+		return "Error reading over socker"
+	}
 	str := string(res[:])
 
 	return str
@@ -343,9 +388,11 @@ func (satori *Satori) Decrypt(key string, encryptionKey string) string {
 		return "Error serializing payload"
 	}
 
-	conn.Write(b)
-	res := make([]byte, 3072)
-	conn.Read(res)
+	conn.WriteMessage(websocket.TextMessage, b)
+	_, res, err := conn.ReadMessage()
+	if err != nil {
+		return "Error reading over socker"
+	}
 	str := string(res[:])
 
 	return str
@@ -365,9 +412,11 @@ func (satori *Satori) SetUser(Username string, role string) string {
 		return "Error serializing payload"
 	}
 
-	conn.Write(b)
-	res := make([]byte, 3072)
-	conn.Read(res)
+	conn.WriteMessage(websocket.TextMessage, b)
+	_, res, err := conn.ReadMessage()
+	if err != nil {
+		return "Error reading over socker"
+	}
 	str := string(res[:])
 
 	if str != "ERROR" {
@@ -392,9 +441,11 @@ func (satori *Satori) GetUser(Username string) string {
 		return "Error serializing payload"
 	}
 
-	conn.Write(b)
-	res := make([]byte, 3072)
-	conn.Read(res)
+	conn.WriteMessage(websocket.TextMessage, b)
+	_, res, err := conn.ReadMessage()
+	if err != nil {
+		return "Error reading over socker"
+	}
 
 	return string(res[:])
 }
@@ -412,9 +463,11 @@ func (satori *Satori) PutUser(Username string, role string) string {
 		return "Error serializing payload"
 	}
 
-	conn.Write(b)
-	res := make([]byte, 3072)
-	conn.Read(res)
+	conn.WriteMessage(websocket.TextMessage, b)
+	_, res, err := conn.ReadMessage()
+	if err != nil {
+		return "Error reading over socker"
+	}
 
 	return string(res[:])
 }
@@ -432,9 +485,11 @@ func (satori *Satori) DeleteUser(Username string) string {
 		return "Error serializing payload"
 	}
 
-	conn.Write(b)
-	res := make([]byte, 3072)
-	conn.Read(res)
+	conn.WriteMessage(websocket.TextMessage, b)
+	_, res, err := conn.ReadMessage()
+	if err != nil {
+		return "Error reading over socker"
+	}
 
 	return string(res[:])
 }
@@ -452,9 +507,11 @@ func (satori *Satori) DeleteAuth() string {
 		return "Error serializing payload"
 	}
 
-	conn.Write(b)
-	res := make([]byte, 3072)
-	conn.Read(res)
+	conn.WriteMessage(websocket.TextMessage, b)
+	_, res, err := conn.ReadMessage()
+	if err != nil {
+		return "Error reading over socker"
+	}
 
 	return string(res[:])
 }
@@ -472,9 +529,11 @@ func (satori *Satori) GetAll(objType string) string {
 		return "Error serializing payload"
 	}
 
-	conn.Write(b)
-	res := make([]byte, 3072)
-	conn.Read(res)
+	conn.WriteMessage(websocket.TextMessage, b)
+	_, res, err := conn.ReadMessage()
+	if err != nil {
+		return "Error reading over socker"
+	}
 
 	return string(res[:])
 }
@@ -492,9 +551,11 @@ func (satori *Satori) DeleteAll(objType string) string {
 		return "Error serializing payload"
 	}
 
-	conn.Write(b)
-	res := make([]byte, 3072)
-	conn.Read(res)
+	conn.WriteMessage(websocket.TextMessage, b)
+	_, res, err := conn.ReadMessage()
+	if err != nil {
+		return "Error reading over socker"
+	}
 
 	return string(res[:])
 }
@@ -512,9 +573,11 @@ func (satori *Satori) GetAllWith(fieldArray []FieldEntry) string {
 		return "Error serializing payload"
 	}
 
-	conn.Write(b)
-	res := make([]byte, 3072)
-	conn.Read(res)
+	conn.WriteMessage(websocket.TextMessage, b)
+	_, res, err := conn.ReadMessage()
+	if err != nil {
+		return "Error reading over socker"
+	}
 
 	return string(res[:])
 }
@@ -532,9 +595,11 @@ func (satori *Satori) GetOneWith(fieldArray []FieldEntry) string {
 		return "Error serializing payload"
 	}
 
-	conn.Write(b)
-	res := make([]byte, 3072)
-	conn.Read(res)
+	conn.WriteMessage(websocket.TextMessage, b)
+	_, res, err := conn.ReadMessage()
+	if err != nil {
+		return "Error reading over socker"
+	}
 
 	return string(res[:])
 }
@@ -552,9 +617,11 @@ func (satori *Satori) DeleteAllWith(fieldArray []FieldEntry) string {
 		return "Error serializing payload"
 	}
 
-	conn.Write(b)
-	res := make([]byte, 3072)
-	conn.Read(res)
+	conn.WriteMessage(websocket.TextMessage, b)
+	_, res, err := conn.ReadMessage()
+	if err != nil {
+		return "Error reading over socker"
+	}
 
 	return string(res[:])
 }
@@ -572,9 +639,11 @@ func (satori *Satori) DeleteOneWith(fieldArray []FieldEntry) string {
 		return "Error serializing payload"
 	}
 
-	conn.Write(b)
-	res := make([]byte, 3072)
-	conn.Read(res)
+	conn.WriteMessage(websocket.TextMessage, b)
+	_, res, err := conn.ReadMessage()
+	if err != nil {
+		return "Error reading over socker"
+	}
 
 	return string(res[:])
 }
@@ -592,9 +661,11 @@ func (satori *Satori) PutAllWith(fieldArray []FieldEntry, replaceField string, r
 		return "Error serializing payload"
 	}
 
-	conn.Write(b)
-	res := make([]byte, 3072)
-	conn.Read(res)
+	conn.WriteMessage(websocket.TextMessage, b)
+	_, res, err := conn.ReadMessage()
+	if err != nil {
+		return "Error reading over socker"
+	}
 
 	return string(res[:])
 }
@@ -612,9 +683,11 @@ func (satori *Satori) PutOneWith(fieldArray []FieldEntry, replaceField string, r
 		return "Error serializing payload"
 	}
 
-	conn.Write(b)
-	res := make([]byte, 3072)
-	conn.Read(res)
+	conn.WriteMessage(websocket.TextMessage, b)
+	_, res, err := conn.ReadMessage()
+	if err != nil {
+		return "Error reading over socker"
+	}
 
 	return string(res[:])
 }
@@ -632,9 +705,11 @@ func (satori *Satori) SetRef(key string, ref string, encryptionKey string) strin
 		return "Error serializing payload"
 	}
 
-	conn.Write(b)
-	res := make([]byte, 3072)
-	conn.Read(res)
+	conn.WriteMessage(websocket.TextMessage, b)
+	_, res, err := conn.ReadMessage()
+	if err != nil {
+		return "Error reading over socker"
+	}
 
 	return string(res[:])
 }
@@ -652,9 +727,11 @@ func (satori *Satori) GetRefs(key string) string {
 		return "Error serializing payload"
 	}
 
-	conn.Write(b)
-	res := make([]byte, 3072)
-	conn.Read(res)
+	conn.WriteMessage(websocket.TextMessage, b)
+	_, res, err := conn.ReadMessage()
+	if err != nil {
+		return "Error reading over socker"
+	}
 
 	return string(res[:])
 }
@@ -672,9 +749,11 @@ func (satori *Satori) Pop(key string, array string, encrpytionKey string) string
 		return "Error serializing payload"
 	}
 
-	conn.Write(b)
-	res := make([]byte, 3072)
-	conn.Read(res)
+	conn.WriteMessage(websocket.TextMessage, b)
+	_, res, err := conn.ReadMessage()
+	if err != nil {
+		return "Error reading over socker"
+	}
 
 	return string(res[:])
 }
@@ -692,9 +771,11 @@ func (satori *Satori) Push(key string, array string, value any, encrpytionKey st
 		return "Error serializing payload"
 	}
 
-	conn.Write(b)
-	res := make([]byte, 3072)
-	conn.Read(res)
+	conn.WriteMessage(websocket.TextMessage, b)
+	_, res, err := conn.ReadMessage()
+	if err != nil {
+		return "Error reading over socker"
+	}
 
 	return string(res[:])
 }
@@ -712,9 +793,11 @@ func (satori *Satori) Remove(key string, array string, value any, encrpytionKey 
 		return "Error serializing payload"
 	}
 
-	conn.Write(b)
-	res := make([]byte, 3072)
-	conn.Read(res)
+	conn.WriteMessage(websocket.TextMessage, b)
+	_, res, err := conn.ReadMessage()
+	if err != nil {
+		return "Error reading over socker"
+	}
 
 	return string(res[:])
 }
@@ -732,9 +815,11 @@ func (satori *Satori) Splice(key string, array string, encrpytionKey string) str
 		return "Error serializing payload"
 	}
 
-	conn.Write(b)
-	res := make([]byte, 3072)
-	conn.Read(res)
+	conn.WriteMessage(websocket.TextMessage, b)
+	_, res, err := conn.ReadMessage()
+	if err != nil {
+		return "Error reading over socker"
+	}
 
 	return string(res[:])
 }
@@ -752,9 +837,11 @@ func (satori *Satori) DeleteRefs(key string) string {
 		return "Error serializing payload"
 	}
 
-	conn.Write(b)
-	res := make([]byte, 3072)
-	conn.Read(res)
+	conn.WriteMessage(websocket.TextMessage, b)
+	_, res, err := conn.ReadMessage()
+	if err != nil {
+		return "Error reading over socker"
+	}
 
 	return string(res[:])
 }
@@ -772,9 +859,11 @@ func (satori *Satori) DeleteRef(key string, ref string, encrpytionKey string) st
 		return "Error serializing payload"
 	}
 
-	conn.Write(b)
-	res := make([]byte, 3072)
-	conn.Read(res)
+	conn.WriteMessage(websocket.TextMessage, b)
+	_, res, err := conn.ReadMessage()
+	if err != nil {
+		return "Error reading over socker"
+	}
 
 	return string(res[:])
 }
@@ -792,9 +881,11 @@ func (satori *Satori) PutAll(objectType string, replaceField string, replaceValu
 		return "Error serializing payload"
 	}
 
-	conn.Write(b)
-	res := make([]byte, 3072)
-	conn.Read(res)
+	conn.WriteMessage(websocket.TextMessage, b)
+	_, res, err := conn.ReadMessage()
+	if err != nil {
+		return "Error reading over socker"
+	}
 
 	return string(res[:])
 }
@@ -812,9 +903,11 @@ func (satori *Satori) Inject(path string, args any) string {
 		return "Error serializing payload"
 	}
 
-	conn.Write(b)
-	res := make([]byte, 3072)
-	conn.Read(res)
+	conn.WriteMessage(websocket.TextMessage, b)
+	_, res, err := conn.ReadMessage()
+	if err != nil {
+		return "Error reading over socker"
+	}
 
 	return string(res[:])
 }
@@ -832,9 +925,11 @@ func (satori *Satori) Get_Stats() string {
 		return "Error serializing payload"
 	}
 
-	conn.Write(b)
-	res := make([]byte, 3072)
-	conn.Read(res)
+	conn.WriteMessage(websocket.TextMessage, b)
+	_, res, err := conn.ReadMessage()
+	if err != nil {
+		return "Error reading over socker"
+	}
 
 	return string(res[:])
 }
