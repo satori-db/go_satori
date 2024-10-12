@@ -174,10 +174,11 @@ func (satori *Satori) Get(key string, encryptionKey string) string {
 	}
 
 	conn.WriteMessage(websocket.TextMessage, b)
-	res := make([]byte, 3072)
+	var rx []byte
 
 	for {
-		_, err := conn.Read(res)
+		_, res, err := conn.ReadMessage()
+		rx = res
 		if err != nil && err != io.EOF {
 			return "Error reading over socket"
 		} else {
@@ -186,7 +187,7 @@ func (satori *Satori) Get(key string, encryptionKey string) string {
 
 	}
 	conn.Close()
-	return string(res[:])
+	return string(rx[:])
 }
 
 func (satori *Satori) Put(key string, replaceField string, replaceValue any, encryptionKey string) string {
@@ -238,10 +239,11 @@ func (satori *Satori) Delete(key string) string {
 	}
 
 	conn.WriteMessage(websocket.TextMessage, b)
-	res := make([]byte, 3072)
+	var rx []byte
 
 	for {
-		_, err := conn.Read(res)
+		_, res, err := conn.ReadMessage()
+		rx = res
 		if err != nil && err != io.EOF {
 			return "Error reading over socket"
 		} else {
@@ -249,7 +251,7 @@ func (satori *Satori) Delete(key string) string {
 		}
 
 	}
-	return string(res[:])
+	return string(rx[:])
 }
 
 func (satori *Satori) DFS(node string, relation string) string {
